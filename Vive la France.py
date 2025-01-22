@@ -2,13 +2,13 @@ import tkinter as tk
 from tkinter import messagebox
 
 
-# Alphabet with PL letters
+# PL Alphabet 
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZĄĆĘŁŃÓŚŹŻ"
 
 
 def vigenere_encrypt(text, key):
     """
-    Text encryption using Vigenère's method.
+    Text encryption 
     """
     key = key.upper()  # Bring the key to uppercase
     result = []
@@ -29,7 +29,7 @@ def vigenere_encrypt(text, key):
 
 def vigenere_decrypt(text, key):
     """
-    Text decryption using Vigenère's method.
+    Text decryption 
     """
     key = key.upper()  # Bring the key to uppercase
     result = []
@@ -50,34 +50,51 @@ def vigenere_decrypt(text, key):
 
 def encrypt_text():
     """
-    A function for encrypting text.
+    A function for encrypting text
     """
     input_text = input_text_box.get("1.0", tk.END).strip().upper()
     key = key_entry.get().strip().upper()
 
+    # Key check
     if not key.isalpha():
         messagebox.showerror("Error", "The key must contain only letters!")
         return
 
-    encrypted_text = vigenere_encrypt(input_text, key)
+    # Text check
+    invalid_chars = [char for char in input_text if char not in ALPHABET and char != ' ']
+    if invalid_chars:
+        messagebox.showerror("Error", f"Invalid characters found: {''.join(invalid_chars)}")
+        return
+
+    # encrypt
+    encrypted_text = vigenere_encrypt(input_text.replace(" ", ""), key)
     output_text_box.delete("1.0", tk.END)
     output_text_box.insert(tk.END, encrypted_text)
 
 
 def decrypt_text():
     """
-    A function for decrypting text.
+    A function for decrypting text
     """
     input_text = input_text_box.get("1.0", tk.END).strip().upper()
     key = key_entry.get().strip().upper()
 
+    # Key check
     if not key.isalpha():
         messagebox.showerror("Error", "The key must contain only letters!")
         return
 
-    decrypted_text = vigenere_decrypt(input_text, key)
+    # text check
+    invalid_chars = [char for char in input_text if char not in ALPHABET and char != ' ']
+    if invalid_chars:
+        messagebox.showerror("Error", f"Invalid characters found: {''.join(invalid_chars)}")
+        return
+
+    # decrypt
+    decrypted_text = vigenere_decrypt(input_text.replace(" ", ""), key)
     output_text_box.delete("1.0", tk.END)
     output_text_box.insert(tk.END, decrypted_text)
+
 
 
 # Main window
@@ -94,7 +111,7 @@ tk.Label(root, text="Key:").grid(row=2, column=0, sticky="w")
 key_entry = tk.Entry(root)
 key_entry.grid(row=2, column=1, pady=5)
 
-# Buttons for encryption and decryption
+# Buttons 
 encrypt_button = tk.Button(root, text="Encrypt", command=encrypt_text)
 encrypt_button.grid(row=3, column=0, pady=10)
 
@@ -105,6 +122,5 @@ decrypt_button.grid(row=3, column=1, pady=10)
 tk.Label(root, text="Result:").grid(row=4, column=0, sticky="w")
 output_text_box = tk.Text(root, height=5, width=40)
 output_text_box.grid(row=5, column=0, columnspan=2, padx=10, pady=5)
-
 
 root.mainloop()
