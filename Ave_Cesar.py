@@ -6,7 +6,7 @@ ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZĄĆĘŁŃÓŚŹŻ"
 
 def caesar_cipher(text, shift):
     """
-    Realization of the Caesar cipher.
+    cipher
     """
     result = []
     for char in text:
@@ -18,19 +18,23 @@ def caesar_cipher(text, shift):
             continue  # Ignore other symbols
     return ''.join(result)
 
-
 def encrypt_text():
     """
-    A function for encrypting text.
+    A function for encrypting text
     """
     input_text = input_text_box.get("1.0", tk.END).strip().upper()
+    invalid_chars = [char for char in input_text if char not in ALPHABET and char != ' ']
+    if invalid_chars:
+        messagebox.showerror("Error", f"Invalid characters found: {''.join(invalid_chars)}")
+        return
+
     try:
         shift = int(shift_entry.get())
     except ValueError:
         messagebox.showerror("Error", "Enter the correct number for the offset!")
         return
 
-    encrypted_text = caesar_cipher(input_text, shift)
+    encrypted_text = caesar_cipher(input_text.replace(" ", ""), shift)  # Removing spaces
     output_text_box.delete("1.0", tk.END)
     output_text_box.insert(tk.END, encrypted_text)
 
@@ -40,15 +44,21 @@ def decrypt_text():
     A function for decrypting text.
     """
     input_text = input_text_box.get("1.0", tk.END).strip().upper()
+    invalid_chars = [char for char in input_text if char not in ALPHABET and char != ' ']
+    if invalid_chars:
+        messagebox.showerror("Error", f"Invalid characters found: {''.join(invalid_chars)}")
+        return
+
     try:
         shift = int(shift_entry.get())
     except ValueError:
         messagebox.showerror("Error", "Enter the correct number for the offset!")
         return
 
-    decrypted_text = caesar_cipher(input_text, -shift)
+    decrypted_text = caesar_cipher(input_text.replace(" ", ""), -shift)  # Removing spaces
     output_text_box.delete("1.0", tk.END)
     output_text_box.insert(tk.END, decrypted_text)
+
 
 
 # Main window
