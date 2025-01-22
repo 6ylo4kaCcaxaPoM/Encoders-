@@ -1,151 +1,128 @@
+import random
+import math
 import tkinter as tk
 from tkinter import messagebox
-import random
 
+# Function to check if a number is prime
+def is_prime(num):
+    if num <= 1:
+        return False
+    for i in range(2, int(math.sqrt(num)) + 1):
+        if num % i == 0:
+            return False
+    return True
 
+# Function to generate a random prime number
+def generate_prime():
+    while True:
+        num = random.randint(100, 500)
+        if is_prime(num):
+            return num
+
+# Function to compute gcd (greatest common divisor)
 def gcd(a, b):
-    """
-    Calculate the greatest common divisor (GCD) of two numbers.
-    """
     while b:
         a, b = b, a % b
     return a
 
-
-def modular_inverse(a, m):
-    """
-    Calculate the modular multiplicative inverse (mod m).
-    """
+# Function to compute modular inverse of a modulo m
+def mod_inverse(a, m):
     m0, x0, x1 = m, 0, 1
     while a > 1:
         q = a // m
-        a, m = m, a % m
+        m, a = a % m, m
         x0, x1 = x1 - q * x0, x0
     return x1 + m0 if x1 < 0 else x1
 
-
-def generate_keys():
-    """
-    Generate a pair of RSA public and private keys.
-    """
-    primes = [i for i in range(100, 500) if all(i % d != 0 for d in range(2, int(i ** 0.5) + 1))]
-    p = random.choice(primes)
-    q = random.choice(primes)
-    while p == q:
-        q = random.choice(primes)
-    
+# Function to generate RSA keys
+def generate_rsa_keys():
+    p = generate_prime()
+    q = generate_prime()
     n = p * q
-    phi = (p - 1) * (q - 1)
-
-    e = random.choice([i for i in range(2, phi) if gcd(i, phi) == 1])
-    d = modular_inverse(e, phi)
-
+    phi_n = (p - 1) * (q - 1)
+    
+    e = random.randint(2, phi_n - 1)
+    while gcd(e, phi_n) != 1:
+        e = random.randint(2, phi_n - 1)
+    
+    d = mod_inverse(e, phi_n)
+    
     return (e, n), (d, n)
 
+# Function to encrypt a message
+def encrypt_message(message, public_key):
+    e, n = public_key
+    encrypted_message = [pow(ord(char), e, n) for char in message]
+    return encrypted_message
 
-def encrypt_message(message, key):
-    """
-    Encrypt a message using the public key.
-    """
-    e, n = key
-    return [pow(ord(char), e, n) for char in message]
+# Function to decrypt a message
+def decrypt_message(encrypted_message, private_key):
+    d, n = private_key
+    decrypted_message = ''.join([chr(pow(char, d, n)) for char in encrypted_message])
+    return decrypted_message
 
-
-def decrypt_message(encrypted_message, key):
-    """
-    Decrypt a message using the private key.
-    """
-    d, n = key
-    return ''.join(chr(pow(char, d, n)) for char in encrypted_message)
-
-
-# Global variables to store the keys
-public_key = None
-private_key = None
-
-
-def generate_key_pair():
-    """
-    Generate RSA keys and display them in the interface.
-    """
-    global public_key, private_key
-    public_key, private_key = generate_keys()
-    public_key_label.config(text=f"Public Key: {public_key}")
-    private_key_label.config(text=f"Private Key: {private_key}")
-    messagebox.showinfo("RSA Keys", "Keys successfully generated!")
-
+# Function to generate keys or use custom keys
+def generate_keys():
+    # Generate RSA keys
+    public_key, private_key = generate_rsa_keys()
+    public_key_entry.delete(0, tk.END)
+    private_key_entry.delete(0, tk.END)
+    public_key_entry.insert(0, str(public_key))
+    private_key_entry.insert(0, str(private_key))
 
 def encrypt_text():
-    """
-    Encrypt text from the input field.
-    """
-    if not public_key:
-        messagebox.showerror("Error", "Generate RSA keys first!")
-        return
-
-    input_text = input_text_box.get("1.0", tk.END).strip()
-    if not input_text:
-        messagebox.showerror("Error", "Enter text to encrypt!")
-        return
-
-    encrypted = encrypt_message(input_text, public_key)
-    output_text_box.delete("1.0", tk.END)
-    output_text_box.insert(tk.END, ' '.join(map(str, encrypted)))
-
+    # Get public key from the entry field
+    try:
+        public_key = eval(public_key_entry.get())
+        message = input_text.get("1.0", tk.END).strip()
+        encrypted_message = encrypt_message(message, public_key)
+        output_text.delete("1.0", tk.END)
+        output_text.insert(tk.END, str(encrypted_message))
+    except Exception as e:
+        messagebox.showerror("Error", f"An error occurred during encryption: {e}")
 
 def decrypt_text():
-    """
-    Decrypt text from the input field.
-    """
-    if not private_key:
-        messagebox.showerror("Error", "Generate RSA keys first!")
-        return
-
-    input_text = input_text_box.get("1.0", tk.END).strip()
-    if not input_text:
-        messagebox.showerror("Error", "Enter encrypted text to decrypt!")
-        return
-
+    # Get private key from the entry field
     try:
-        encrypted = list(map(int, input_text.split()))
-        decrypted = decrypt_message(encrypted, private_key)
-        output_text_box.delete("1.0", tk.END)
-        output_text_box.insert(tk.END, decrypted)
-    except ValueError:
-        messagebox.showerror("Error", "Enter valid encrypted text!")
+        private_key = eval(private_key_entry.get())
+        encrypted_message = eval(output_text.get("1.0", tk.END).strip())
+        decrypted_message = decrypt_message(encrypted_message, private_key)
+        output_text.delete("1.0", tk.END)
+        output_text.insert(tk.END, decrypted_message)
+    except Exception as e:
+        messagebox.showerror("Error", f"An error occurred during decryption: {e}")
 
-
-# Main window
+# UI
 root = tk.Tk()
-root.title("RSA Encryptor")
+root.title("RSA Encryption")
 
-# Field for generating keys
-key_frame = tk.Frame(root)
-key_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
-tk.Button(key_frame, text="Generate Keys", command=generate_key_pair).grid(row=0, column=0, columnspan=2)
+# Input text
+tk.Label(root, text="Enter Message:").grid(row=0, column=0, sticky="w")
+input_text = tk.Text(root, height=5, width=40)
+input_text.grid(row=1, column=0, columnspan=2, padx=10, pady=5)
 
-# Labels to display keys
-public_key_label = tk.Label(root, text="Public Key: Not generated")
-public_key_label.grid(row=1, column=0, columnspan=2, padx=10, pady=5)
+# Public and Private Key input fields
+tk.Label(root, text="Public Key (e, n):").grid(row=2, column=0, sticky="w")
+public_key_entry = tk.Entry(root, width=50)
+public_key_entry.grid(row=2, column=1, padx=10, pady=5)
 
-private_key_label = tk.Label(root, text="Private Key: Not generated")
-private_key_label.grid(row=2, column=0, columnspan=2, padx=10, pady=5)
-
-# Field for text
-tk.Label(root, text="Enter text:").grid(row=3, column=0, sticky="w")
-input_text_box = tk.Text(root, height=5, width=40)
-input_text_box.grid(row=4, column=0, columnspan=2, padx=10, pady=5)
+tk.Label(root, text="Private Key (d, n):").grid(row=3, column=0, sticky="w")
+private_key_entry = tk.Entry(root, width=50)
+private_key_entry.grid(row=3, column=1, padx=10, pady=5)
 
 # Buttons 
-encrypt_button = tk.Button(root, text="Encrypt", command=encrypt_text)
+generate_button = tk.Button(root, text="Generate RSA Keys", command=generate_keys)
+generate_button.grid(row=4, column=0, pady=10)
+
+encrypt_button = tk.Button(root, text="Encrypt Message", command=encrypt_text)
 encrypt_button.grid(row=5, column=0, pady=10)
 
-decrypt_button = tk.Button(root, text="Decrypt", command=decrypt_text)
+decrypt_button = tk.Button(root, text="Decrypt Message", command=decrypt_text)
 decrypt_button.grid(row=5, column=1, pady=10)
 
-# Field for result
-tk.Label(root, text="Result:").grid(row=6, column=0, sticky="w")
-output_text_box = tk.Text(root, height=5, width=40)
-output_text_box.grid(row=7, column=0, columnspan=2, padx=10, pady=5)
+# Output field
+tk.Label(root, text="Output (Encrypted/Decrypted Message):").grid(row=6, column=0, sticky="w")
+output_text = tk.Text(root, height=5, width=40)
+output_text.grid(row=7, column=0, columnspan=2, padx=10, pady=5)
 
 root.mainloop()
