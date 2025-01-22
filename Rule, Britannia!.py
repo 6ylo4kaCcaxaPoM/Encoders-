@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 
 
-# Alphabet with PL letters
+# PL Alphabet
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZĄĆĘŁŃÓŚŹŻ"
 
 
@@ -16,7 +16,7 @@ def prepare_key(key):
 
 def create_playfair_matrix(key):
     """
-    Creation of the Playfair cipher matrix.
+    cipher matrix
     """
     key = prepare_key(key)
     remaining_letters = ''.join([c for c in ALPHABET if c not in key])
@@ -26,7 +26,7 @@ def create_playfair_matrix(key):
 
 def find_position(matrix, char):
     """
-    Finding the position of a symbol in a matrix.
+    Finding the position of a symbol in a matrix
     """
     for row in range(len(matrix)):
         for col in range(len(matrix[row])):
@@ -37,12 +37,12 @@ def find_position(matrix, char):
 
 def playfair_encrypt(text, key):
     """
-    Text encryption using the Playfair cipher.
+    Text encryption 
     """
     matrix = create_playfair_matrix(key)
     text = text.upper().replace(' ', '')
 
-    # Split the text into bigrams (2 characters each)
+    # Split the text into bigrams 
     pairs = []
     i = 0
     while i < len(text):
@@ -79,7 +79,7 @@ def playfair_encrypt(text, key):
 
 def playfair_decrypt(text, key):
     """
-    Text decryption using the Playfair cipher.
+    Text decryption using the Playfair cipher
     """
     matrix = create_playfair_matrix(key)
     text = text.upper().replace(' ', '')
@@ -108,13 +108,23 @@ def playfair_decrypt(text, key):
 
 def encrypt_text():
     """
-    A function for encrypting text.
+    A function for encrypting text
     """
     input_text = input_text_box.get("1.0", tk.END).strip().upper()
-    key = key_entry.get().strip()
+    key = key_entry.get().strip().upper()
 
+    # Key check
     if not key:
         messagebox.showerror("Error", "The key can't be empty!")
+        return
+    if any(char not in ALPHABET for char in key):
+        messagebox.showerror("Error", "The key contains invalid characters!")
+        return
+
+    # text check
+    if any(char not in ALPHABET and char != ' ' for char in input_text):
+        invalid_chars = ''.join(set(char for char in input_text if char not in ALPHABET and char != ' '))
+        messagebox.showerror("Error", f"The text contains invalid characters: {invalid_chars}")
         return
 
     encrypted_text = playfair_encrypt(input_text, key)
@@ -124,18 +134,29 @@ def encrypt_text():
 
 def decrypt_text():
     """
-    A function for decrypting text.
+    A function for decrypting text
     """
     input_text = input_text_box.get("1.0", tk.END).strip().upper()
-    key = key_entry.get().strip()
+    key = key_entry.get().strip().upper()
 
+    # Key check
     if not key:
-        messagebox.showerror("Erorr", "The key can't be empty!")
+        messagebox.showerror("Error", "The key can't be empty!")
+        return
+    if any(char not in ALPHABET for char in key):
+        messagebox.showerror("Error", "The key contains invalid characters!")
+        return
+
+    # text check
+    if any(char not in ALPHABET and char != ' ' for char in input_text):
+        invalid_chars = ''.join(set(char for char in input_text if char not in ALPHABET and char != ' '))
+        messagebox.showerror("Error", f"The text contains invalid characters: {invalid_chars}")
         return
 
     decrypted_text = playfair_decrypt(input_text, key)
     output_text_box.delete("1.0", tk.END)
     output_text_box.insert(tk.END, decrypted_text)
+
 
 
 # Main Window
